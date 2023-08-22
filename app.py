@@ -1,12 +1,15 @@
+import os
 from dotenv import load_dotenv
 import streamlit as st
-from PyPDF2 import PdfReader
+from pypdf import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
+from langchain.vectorstores import Chroma
 from langchain.chains.question_answering import load_qa_chain
 from langchain.llms import OpenAI
 from langchain.callbacks import get_openai_callback
+
+persist_directory = os.environ.get('PERSIST_DIRECTORY')
 
 
 def upload_pdf():
@@ -33,33 +36,65 @@ def get_text_chunks(text):
     chunks = text_splitter.split_text(text)
     return chunks
 
-def create_embeddings(chunks):
-    embeddings = OpenAIEmbeddings()
-    knowledge_base = FAISS.from_texts(chunks, embeddings)
+def does_vectorstore_exist(persist_directory: str) -> bool:
+    """
+    Checks if vectorstore directory exists and is not empty
+    """
+    if os.path.exists(persist_directory) and os.listdir(persist_directory):
+        return True
+    return False
+
+
+def create_embeddings(chunks, embeddings):
+    knowledge_base = Chroma.from_texts(chunks, embeddings)
     return knowledge_base
 
+def create_persistent_embeddings(chunks, embeddings):
+    # Check if vectorstore exists
+    if does_vectorstore_exist(persist_directory):
+        print(f"Embeddings already exist at {persist_directory}. No need to add anything.")
+        knowledge_base = Chroma(persist_directory=persist_directory, embedding_function=embeddings)
+    else:
+        # Create and store locally vectorstore using Chroma
+        print("Creating new vectorstore")
+        knowledge_base = Chroma.from_texts(texts=chunks, embedding=embeddings, persist_directory=persist_directory)
+        knowledge_base.persist()
+        print(f"Ingestion complete! Embeddings created for uploaded file.")
+    return knowledge_base
+
+
 def ask_question(knowledge_base):
-    user_question = st.text_input("Ask a question about your PDF:")
-    if user_question:
+    col1, col2 = st.columns([10, 1])  # Creating two columns with different widths
+    col2.markdown('<div style="height:28px;"></div>', unsafe_allow_html=True)  # Add a css white space
+    user_question = col1.text_input("Ask a question about your PDF:")
+    submit_button = col2.button("Ask")
+
+    if submit_button and user_question:  # Check if the button is clicked and there's a question
         docs = knowledge_base.similarity_search(user_question)
         llm = OpenAI()
         chain = load_qa_chain(llm, chain_type="stuff")
         with get_openai_callback() as cb:
             response = chain.run(input_documents=docs, question=user_question)
-            print(cb)
         st.write(response)
+        formatted_cost = f"${cb.total_cost:.3f}" 
+        st.markdown(f"**Callback Result:**\n\n- **Total Cost:** {formatted_cost}\n- **Prompt Tokens:** {cb.prompt_tokens}")
+
+
+
 
 def main():
     load_dotenv()
-    st.set_page_config(page_title="Ask your PDF")
+    embeddings = OpenAIEmbeddings()
+    st.set_page_config(
+        page_title="Ask your PDF",
+    )
     pdf = upload_pdf()
     if pdf:
         text = extract_text_from_pdf(pdf)
         if text:
             chunks = get_text_chunks(text)
-            knowledge_base = create_embeddings(chunks)
+            knowledge_base = create_persistent_embeddings(chunks, embeddings)
             ask_question(knowledge_base)
-
 
 
 if __name__ == '__main__':
