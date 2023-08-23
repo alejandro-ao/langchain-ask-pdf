@@ -80,22 +80,28 @@ def ask_question(knowledge_base):
         st.markdown(f"**Callback Result:**\n\n- **Total Cost:** {formatted_cost}\n- **Prompt Tokens:** {cb.prompt_tokens}")
 
 
-
-
 def main():
     load_dotenv()
     embeddings = OpenAIEmbeddings()
     st.set_page_config(
         page_title="Ask your PDF",
+        page_icon="📄",
     )
+    
     pdf = upload_pdf()
+    
     if pdf:
         text = extract_text_from_pdf(pdf)
+        
         if text:
             chunks = get_text_chunks(text)
-            knowledge_base = create_persistent_embeddings(chunks, embeddings)
-            ask_question(knowledge_base)
-
+            
+            # Check if embeddings are already in the session state
+            if 'knowledge_base' not in st.session_state:
+                st.session_state.knowledge_base = create_persistent_embeddings(chunks, embeddings)
+                
+            ask_question(st.session_state.knowledge_base)
 
 if __name__ == '__main__':
     main()
+
