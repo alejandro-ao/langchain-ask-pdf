@@ -112,7 +112,7 @@ def main():
     embeddings = OpenAIEmbeddings()
     st.set_page_config(
         page_title="Ask your PDF",
-        page_icon="📄",
+        # page_icon="📄",
     )
     
     pdf = upload_pdf()
