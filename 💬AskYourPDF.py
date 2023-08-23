@@ -12,10 +12,10 @@ from langchain.callbacks import get_openai_callback
 persist_directory = os.environ.get('PERSIST_DIRECTORY')
 
 
-def upload_pdf():
-    st.header("Ask your PDF 💬")
-    pdf = st.file_uploader("Upload your PDF", type="pdf")
-    return pdf
+# def upload_pdf():
+#     st.header("Ask your PDF 💬")
+#     pdf = st.file_uploader("Upload your PDF", type="pdf")
+#     return pdf
 
 def extract_text_from_pdf(pdf):
     if pdf is not None:
@@ -65,7 +65,7 @@ def create_persistent_embeddings(chunks, embeddings):
 
 def ask_question(knowledge_base):
     col1, col2 = st.columns([10, 1])  # Creating two columns with different widths
-    col2.markdown('<div style="height:28px;"></div>', unsafe_allow_html=True)  # Add a css white space
+    col2.markdown('<div style="height:28px;"></div>', unsafe_allow_html=True)  # Add a css white space to allign the button
     user_question = col1.text_input("Ask a question about your PDF:")
     submit_button = col2.button("Ask")
 
@@ -78,6 +78,33 @@ def ask_question(knowledge_base):
         st.write(response)
         formatted_cost = f"${cb.total_cost:.3f}" 
         st.markdown(f"**Callback Result:**\n\n- **Total Cost:** {formatted_cost}\n- **Prompt Tokens:** {cb.prompt_tokens}")
+
+
+def upload_pdf():
+    st.header("Ask your PDF 💬")
+
+    # If a PDF exists in the session state, display its name and a "Remove PDF" button
+    if 'uploaded_pdf' in st.session_state:
+        col1, col2 = st.columns([10, 4])  # Creating two columns with different widths
+        # col2.markdown('<div style="height:28px;"></div>', unsafe_allow_html=True)  # Add a CSS white space to align the button
+        col1.write(f"Uploaded file: {st.session_state.uploaded_pdf.name}")
+
+        if col2.button('Remove PDF'):
+            del st.session_state.uploaded_pdf
+            return None
+
+        return st.session_state.uploaded_pdf
+    
+    # Otherwise, display the file uploader
+    else:
+        uploaded_pdf = st.file_uploader("Upload your PDF", type="pdf")
+
+        # If the user uploads a new PDF
+        if uploaded_pdf:
+            st.session_state.uploaded_pdf = uploaded_pdf
+            return uploaded_pdf
+
+        return None
 
 
 def main():
@@ -104,4 +131,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

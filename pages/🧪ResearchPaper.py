@@ -1,33 +1,37 @@
 import streamlit as st
-import time
-import numpy as np
 
-st.set_page_config(page_title="Plotting Demo", page_icon="📈")
+
+st.set_page_config(page_title="Plotting Demo", page_icon="🧪")
 
 st.markdown("# Plotting Demo")
 st.sidebar.header("Plotting Demo")
-st.write(
-    """This demo illustrates a combination of plotting and animation with
-Streamlit. We're generating a bunch of random numbers in a loop for around
-5 seconds. Enjoy!"""
-)
+# st.write("Check if session state variables persist across pages:", st.session_state)
 
-progress_bar = st.sidebar.progress(0)
-status_text = st.sidebar.empty()
-last_rows = np.random.randn(1, 1)
-chart = st.line_chart(last_rows)
+def upload_pdf():
+    st.header("Ask your PDF 💬")
 
-for i in range(1, 101):
-    new_rows = last_rows[-1, :] + np.random.randn(5, 1).cumsum(axis=0)
-    status_text.text("%i%% Complete" % i)
-    chart.add_rows(new_rows)
-    progress_bar.progress(i)
-    last_rows = new_rows
-    time.sleep(0.05)
+    # If a PDF exists in the session state, display its name and a "Remove PDF" button
+    if 'uploaded_pdf' in st.session_state:
+        col1, col2 = st.columns([10, 4])  # Creating two columns with different widths
+        # col2.markdown('<div style="height:28px;"></div>', unsafe_allow_html=True)  # Add a CSS white space to align the button
+        col1.write(f"Uploaded file: {st.session_state.uploaded_pdf.name}")
 
-progress_bar.empty()
+        if col2.button('Remove PDF'):
+            del st.session_state.uploaded_pdf
+            return None
 
-# Streamlit widgets automatically run the script from top to bottom. Since
-# this button is not connected to any other logic, it just causes a plain
-# rerun.
-st.button("Re-run")
+        return st.session_state.uploaded_pdf
+    
+    # Otherwise, display the file uploader
+    else:
+        uploaded_pdf = st.file_uploader("Upload your PDF", type="pdf")
+
+        # If the user uploads a new PDF
+        if uploaded_pdf:
+            st.session_state.uploaded_pdf = uploaded_pdf
+            return uploaded_pdf
+
+        return None
+
+
+pdf = upload_pdf()
