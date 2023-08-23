@@ -1,14 +1,16 @@
 from dotenv import load_dotenv
 import streamlit as st
 from PyPDF2 import PdfReader
+import langchain
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.chains.question_answering import load_qa_chain
 from langchain.llms import OpenAI
+from langchain.cache import InMemoryCache
 from langchain.callbacks import get_openai_callback
 
-import os
+langchain.llm_cache = InMemoryCache()
 
 def main():
     load_dotenv()
@@ -43,8 +45,7 @@ def main():
                               ('gpt-3.5-turbo',
                                'gpt-3.5-turbo-16k',
                                'text-davinci-003',
-                               'gpt-4',
-                               'gpt-4-32k'))
+                               'gpt-4'))
 
         # show user input
         user_question = st.text_input("Ask a question about your PDF:")
