@@ -123,11 +123,16 @@ def main():
         if text:
             chunks = get_text_chunks(text)
             
+            # Initialize st.session_state if not already
+            if not hasattr(st.session_state, "knowledge_base"):
+                st.session_state.knowledge_base = None
+                
             # Check if embeddings are already in the session state
-            if 'knowledge_base' not in st.session_state:
+            if not st.session_state.knowledge_base:
                 st.session_state.knowledge_base = create_persistent_embeddings(chunks, embeddings)
                 
             ask_question(st.session_state.knowledge_base)
+
 
 if __name__ == '__main__':
     main()
