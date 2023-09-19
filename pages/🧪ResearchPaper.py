@@ -14,11 +14,11 @@ persist_directory = os.environ.get('PERSIST_DIRECTORY')
 
 def semantic_search(num_queries):
     unique_chunks = set()
-    queries = list(similarity_search_queries)[:num_queries]
-
     
-    for query in queries:
-        results = st.session_state.knowledge_base.similarity_search(query, k=2) # the code is breaking here
+    for key in list(similarity_search_queries)[:num_queries]:
+        query = similarity_search_queries[key]
+        results = st.session_state.knowledge_base.similarity_search(query, k=2)
+        
         for chunk in results:
             chunk_str = str(chunk)
             if chunk_str not in unique_chunks:
