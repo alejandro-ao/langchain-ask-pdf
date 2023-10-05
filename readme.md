@@ -1,4 +1,4 @@
-# Langchain Ask PDF (Tutorial)
+# Langchain Ask PDF (Tutorial- modified)
 
 >You may find the step-by-step video tutorial to build this application [on Youtube](https://youtu.be/wUAUdEw5oxM).
 
