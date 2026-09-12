@@ -1,11 +1,11 @@
 from dotenv import load_dotenv
 import streamlit as st
 from PyPDF2 import PdfReader
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
+from langchain_text_splitters import CharacterTextSplitter
+from langchain_openai import OpenAIEmbeddings
+from langchain_community.vectorstores import FAISS
 from langchain.chains.question_answering import load_qa_chain
-from langchain.llms import OpenAI
+from langchain_openai import OpenAI
 from langchain.callbacks import get_openai_callback
 
 
